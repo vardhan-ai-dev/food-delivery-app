@@ -1,22 +1,40 @@
 import 'package:flutter/material.dart';
-import '../providers/cart_provider.dart';
 import '../models/models.dart';
+import '../providers/cart_provider.dart';
 
-class OrdersScreen extends StatelessWidget {
+class OrdersScreen extends StatefulWidget {
   final CartProvider cartProvider;
 
   const OrdersScreen({super.key, required this.cartProvider});
 
+  @override
+  State<OrdersScreen> createState() => _OrdersScreenState();
+}
+
+class _OrdersScreenState extends State<OrdersScreen> {
   String _statusLabel(OrderStatus status) {
     switch (status) {
       case OrderStatus.placed:
         return 'Order Placed';
       case OrderStatus.preparing:
-        return 'Preparing';
+        return 'Preparing Food';
       case OrderStatus.onTheWay:
         return 'On The Way';
       case OrderStatus.delivered:
         return 'Delivered';
+    }
+  }
+
+  String _statusMessage(OrderStatus status) {
+    switch (status) {
+      case OrderStatus.placed:
+        return 'Order received by restaurant. Preparing will start shortly.';
+      case OrderStatus.preparing:
+        return 'Chef is cooking your fresh meal in the kitchen 🍳';
+      case OrderStatus.onTheWay:
+        return 'Delivery executive is driving to your address 🛵';
+      case OrderStatus.delivered:
+        return 'Order delivered! Enjoy your meal 🎉';
     }
   }
 
@@ -36,163 +54,302 @@ class OrdersScreen extends StatelessWidget {
   IconData _statusIcon(OrderStatus status) {
     switch (status) {
       case OrderStatus.placed:
-        return Icons.check_circle_outline;
+        return Icons.receipt_long;
       case OrderStatus.preparing:
         return Icons.restaurant;
       case OrderStatus.onTheWay:
         return Icons.delivery_dining;
       case OrderStatus.delivered:
-        return Icons.done_all;
+        return Icons.check_circle;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final orders = cartProvider.orders;
+    final orders = widget.cartProvider.orders;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Orders',
-            style: TextStyle(fontWeight: FontWeight.bold)),
-      ),
-      body: orders.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('📦', style: TextStyle(fontSize: 72)),
-                  const SizedBox(height: 16),
-                  Text('No orders yet',
-                      style: theme.textTheme.titleLarge
-                          ?.copyWith(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  Text('Place your first order!',
-                      style: TextStyle(color: theme.colorScheme.outline)),
-                ],
-              ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: orders.length,
-              itemBuilder: (context, index) {
-                final order = orders[index];
-                final statusColor = _statusColor(order.status);
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 14),
-                  color: theme.colorScheme.surfaceContainerLow,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
+    // Listen to changes for real-time progress updates
+    return ListenableBuilder(
+      listenable: widget.cartProvider,
+      builder: (context, _) {
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('My Orders',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          body: orders.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('📦', style: TextStyle(fontSize: 72)),
+                      const SizedBox(height: 16),
+                      Text('No orders yet',
+                          style: theme.textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Add items to cart and place an order to track it live!',
+                        style: TextStyle(color: theme.colorScheme.outline),
+                      ),
+                    ],
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: orders.length,
+                  itemBuilder: (context, index) {
+                    final order = orders[index];
+                    final statusColor = _statusColor(order.status);
+                    final isDelivered =
+                        order.status == OrderStatus.delivered;
+
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      color: theme.colorScheme.surfaceContainerLow,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
+                            // Header with ID & Live Status Badge
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        order.restaurantName,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        'ID: ${order.id} • ${_formatTime(order.orderTime)}',
+                                        style: TextStyle(
+                                            fontSize: 11,
+                                            color: theme.colorScheme.outline),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 5),
+                                  decoration: BoxDecoration(
+                                    color: statusColor.withOpacity(0.12),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                        color: statusColor.withOpacity(0.3)),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(_statusIcon(order.status),
+                                          size: 14, color: statusColor),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        _statusLabel(order.status),
+                                        style: TextStyle(
+                                            color: statusColor,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 12),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 12),
+
+                            // Address & Pincode + Payment banner
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: theme
+                                    .colorScheme.surfaceContainerHighest
+                                    .withOpacity(0.4),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
                               child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(order.restaurantName,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 15)),
-                                  const SizedBox(height: 2),
-                                  Text(order.id,
-                                      style: TextStyle(
+                                  Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Icon(Icons.location_on,
+                                          size: 16, color: Colors.blue),
+                                      const SizedBox(width: 6),
+                                      Expanded(
+                                        child: Text(
+                                          '${order.deliveryAddress} - PIN ${order.pincode}',
+                                          style: const TextStyle(fontSize: 12),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.payment,
+                                          size: 16, color: Colors.green),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'Paid via ${order.paymentMethod}',
+                                        style: TextStyle(
                                           fontSize: 11,
-                                          color: theme.colorScheme.outline)),
+                                          color: Colors.green.shade800,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ],
                               ),
                             ),
+
+                            const Divider(height: 20),
+
+                            // Order Items
+                            ...order.items.map((item) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 6),
+                                  child: Row(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(6),
+                                        child: SizedBox(
+                                          width: 28,
+                                          height: 28,
+                                          child: Image.network(
+                                            item.menuItem.imageUrl,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, __, ___) =>
+                                                Text(item.menuItem.emoji,
+                                                    style: const TextStyle(
+                                                        fontSize: 18)),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          item.menuItem.name,
+                                          style: const TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w500),
+                                        ),
+                                      ),
+                                      Text('x${item.quantity}',
+                                          style: TextStyle(
+                                              color: theme.colorScheme.outline,
+                                              fontSize: 12)),
+                                      const SizedBox(width: 10),
+                                      Text(
+                                          '₹${item.totalPrice.toStringAsFixed(0)}',
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 13)),
+                                    ],
+                                  ),
+                                )),
+
+                            const Divider(height: 16),
+
+                            // Total Bill Row
+                            Row(
+                              mainAxisAlignment:
+                                  MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  '${order.items.length} item${order.items.length > 1 ? 's' : ''}',
+                                  style: TextStyle(
+                                      color: theme.colorScheme.outline,
+                                      fontSize: 13),
+                                ),
+                                Text(
+                                  'Total Paid: ₹${order.totalAmount.toStringAsFixed(0)}',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: theme.colorScheme.primary,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 14),
+
+                            // Status message box
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 5),
+                                  horizontal: 10, vertical: 6),
                               decoration: BoxDecoration(
-                                color: statusColor.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(20),
+                                color: statusColor.withOpacity(0.08),
+                                borderRadius: BorderRadius.circular(8),
                               ),
                               child: Row(
                                 children: [
                                   Icon(_statusIcon(order.status),
                                       size: 14, color: statusColor),
-                                  const SizedBox(width: 4),
-                                  Text(_statusLabel(order.status),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Text(
+                                      _statusMessage(order.status),
                                       style: TextStyle(
-                                          color: statusColor,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 12)),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const Divider(height: 20),
-                        // Order items
-                        ...order.items.map((item) => Padding(
-                              padding: const EdgeInsets.only(bottom: 4),
-                              child: Row(
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(6),
-                                    child: SizedBox(
-                                      width: 24,
-                                      height: 24,
-                                      child: Image.network(
-                                        item.menuItem.imageUrl,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => Text(item.menuItem.emoji,
-                                            style: const TextStyle(fontSize: 18)),
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        color: statusColor,
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                      child: Text(item.menuItem.name,
-                                          style: const TextStyle(
-                                              fontSize: 13))),
-                                  Text('x${item.quantity}',
-                                      style: TextStyle(
-                                          color: theme.colorScheme.outline,
-                                          fontSize: 13)),
-                                  const SizedBox(width: 10),
-                                  Text(
-                                      '₹${item.totalPrice.toStringAsFixed(0)}',
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 13)),
                                 ],
                               ),
-                            )),
-                        const Divider(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              '${order.items.length} item${order.items.length > 1 ? 's' : ''}',
-                              style: TextStyle(
-                                  color: theme.colorScheme.outline,
-                                  fontSize: 13),
                             ),
-                            Text(
-                              'Total: ₹${order.totalAmount.toStringAsFixed(0)}',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: theme.colorScheme.primary,
-                                fontSize: 15,
+
+                            const SizedBox(height: 14),
+
+                            // 4-Step Interactive Progress Tracker
+                            _OrderProgressBar(status: order.status),
+
+                            // Simulation Button (Great for Viva/Demo!)
+                            if (!isDelivered) ...[
+                              const SizedBox(height: 12),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: TextButton.icon(
+                                  onPressed: () {
+                                    widget.cartProvider
+                                        .advanceOrderStatus(order.id);
+                                  },
+                                  icon: const Icon(Icons.fast_forward, size: 16),
+                                  label: const Text(
+                                    'Simulate Next Stage ⚡',
+                                    style: TextStyle(fontSize: 12),
+                                  ),
+                                ),
                               ),
-                            ),
+                            ],
                           ],
                         ),
-                        // Progress bar
-                        const SizedBox(height: 14),
-                        _OrderProgressBar(status: order.status),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
+                      ),
+                    );
+                  },
+                ),
+        );
+      },
     );
+  }
+
+  String _formatTime(DateTime time) {
+    final hour = time.hour > 12 ? time.hour - 12 : (time.hour == 0 ? 12 : time.hour);
+    final period = time.hour >= 12 ? 'PM' : 'AM';
+    final min = time.minute.toString().padLeft(2, '0');
+    return '$hour:$min $period';
   }
 }
 

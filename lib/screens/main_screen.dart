@@ -28,7 +28,11 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     final screens = [
       HomeScreen(cartProvider: _cartProvider, onCartChanged: _refresh),
-      CartScreen(cartProvider: _cartProvider, onCartChanged: _refresh),
+      CartScreen(
+        cartProvider: _cartProvider,
+        onCartChanged: _refresh,
+        onNavigateToOrders: () => _navigateToTab(2),
+      ),
       OrdersScreen(cartProvider: _cartProvider),
       ProfileScreen(
         onNavigateToTab: _navigateToTab,

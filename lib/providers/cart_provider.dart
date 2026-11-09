@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../models/models.dart';
 
@@ -23,7 +24,6 @@ class CartProvider extends ChangeNotifier {
       _items.isNotEmpty ? _items.first.restaurant.name : '';
 
   void addItem(MenuItem menuItem, Restaurant restaurant) {
-    // Check if adding from a different restaurant
     if (_items.isNotEmpty &&
         _items.first.restaurant.id != restaurant.id) {
       _items.clear();
@@ -79,16 +79,63 @@ class CartProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Order placeOrder() {
+  Order placeOrder({
+    required String deliveryAddress,
+    required String pincode,
+    required String paymentMethod,
+  }) {
     final order = Order(
-      id: 'ORD${DateTime.now().millisecondsSinceEpoch}',
+      id: 'ORD${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
       items: List.from(_items),
       totalAmount: total,
       orderTime: DateTime.now(),
+      deliveryAddress: deliveryAddress,
+      pincode: pincode,
+      paymentMethod: paymentMethod,
+      status: OrderStatus.placed,
     );
     _orders.insert(0, order);
     _items.clear();
     notifyListeners();
+
+    // Automatically simulate delivery stages:
+    // Placed -> Preparing (after 4s) -> On the Way (after 9s) -> Delivered (after 16s)
+    Timer(const Duration(seconds: 4), () {
+      if (order.status == OrderStatus.placed) {
+        order.status = OrderStatus.preparing;
+        notifyListeners();
+      }
+    });
+
+    Timer(const Duration(seconds: 9), () {
+      if (order.status == OrderStatus.preparing) {
+        order.status = OrderStatus.onTheWay;
+        notifyListeners();
+      }
+    });
+
+    Timer(const Duration(seconds: 16), () {
+      if (order.status == OrderStatus.onTheWay) {
+        order.status = OrderStatus.delivered;
+        notifyListeners();
+      }
+    });
+
     return order;
+  }
+
+  void advanceOrderStatus(String orderId) {
+    final index = _orders.indexWhere((o) => o.id == orderId);
+    if (index >= 0) {
+      final current = _orders[index].status;
+      if (current == OrderStatus.placed) {
+        _orders[index].status = OrderStatus.preparing;
+      } else if (current == OrderStatus.preparing) {
+        _orders[index].status = OrderStatus.onTheWay;
+      } else if (current == OrderStatus.onTheWay) {
+        _orders[index].status = OrderStatus.delivered;
+      }
+      notifyListeners();
+    }
   }
 }

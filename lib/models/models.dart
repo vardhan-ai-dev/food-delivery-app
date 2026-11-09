@@ -105,6 +105,9 @@ class Order {
   final List<CartItem> items;
   final double totalAmount;
   final DateTime orderTime;
+  final String deliveryAddress;
+  final String pincode;
+  final String paymentMethod;
   OrderStatus status;
 
   Order({
@@ -112,6 +115,9 @@ class Order {
     required this.items,
     required this.totalAmount,
     required this.orderTime,
+    this.deliveryAddress = 'Flat 402, Sunshine Apartments, MG Road, Bengaluru',
+    this.pincode = '560001',
+    this.paymentMethod = 'Google Pay (UPI)',
     this.status = OrderStatus.placed,
   });
 
