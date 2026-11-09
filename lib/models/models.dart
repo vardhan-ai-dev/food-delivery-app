@@ -108,6 +108,8 @@ class Order {
   final String deliveryAddress;
   final String pincode;
   final String paymentMethod;
+  final String? appliedCoupon;
+  final double discountAmount;
   OrderStatus status;
 
   Order({
@@ -118,6 +120,8 @@ class Order {
     this.deliveryAddress = 'Flat 402, Sunshine Apartments, MG Road, Bengaluru',
     this.pincode = '560001',
     this.paymentMethod = 'Google Pay (UPI)',
+    this.appliedCoupon,
+    this.discountAmount = 0.0,
     this.status = OrderStatus.placed,
   });
 

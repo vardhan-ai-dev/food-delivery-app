@@ -22,7 +22,31 @@ class _CartScreenState extends State<CartScreen> {
   String _address = 'Flat 402, Sunshine Apartments, MG Road, Bengaluru';
   String _pincode = '560001';
   String _paymentMethod = 'Google Pay (UPI)';
+  final _couponController = TextEditingController();
   Order? _lastPlacedOrder;
+
+  final List<Map<String, String>> _availableCoupons = [
+    {
+      'code': 'FOOD40',
+      'title': '40% OFF',
+      'desc': 'Save 40% up to ₹100',
+    },
+    {
+      'code': 'WELCOME50',
+      'title': '50% OFF',
+      'desc': 'Save 50% up to ₹150',
+    },
+    {
+      'code': 'FREESHIP',
+      'title': 'FREE Delivery',
+      'desc': '100% discount on delivery fee',
+    },
+    {
+      'code': 'FLAT50',
+      'title': '₹50 OFF',
+      'desc': 'Flat ₹50 off on orders > ₹199',
+    },
+  ];
 
   final List<Map<String, String>> _savedAddresses = [
     {
@@ -69,6 +93,46 @@ class _CartScreenState extends State<CartScreen> {
     },
   ];
 
+  @override
+  void dispose() {
+    _couponController.dispose();
+    super.dispose();
+  }
+
+  void _applyCoupon(String code) {
+    final error = widget.cartProvider.applyCoupon(code);
+    widget.onCartChanged();
+    setState(() {});
+
+    if (error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error),
+          backgroundColor: Colors.red.shade700,
+        ),
+      );
+    } else {
+      _couponController.text = code;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              '🎉 Coupon $code applied! You saved ₹${widget.cartProvider.discountAmount.toStringAsFixed(0)}'),
+          backgroundColor: Colors.green.shade700,
+        ),
+      );
+    }
+  }
+
+  void _removeCoupon() {
+    widget.cartProvider.removeCoupon();
+    _couponController.clear();
+    widget.onCartChanged();
+    setState(() {});
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Coupon removed')),
+    );
+  }
+
   void _showChangeAddressDialog() {
     final addrController = TextEditingController(text: _address);
     final pinController = TextEditingController(text: _pincode);
@@ -104,7 +168,6 @@ class _CartScreenState extends State<CartScreen> {
               ],
             ),
             const SizedBox(height: 14),
-            // Presets
             ..._savedAddresses.map((sa) => Card(
                   margin: const EdgeInsets.only(bottom: 8),
                   child: ListTile(
@@ -352,6 +415,15 @@ class _CartScreenState extends State<CartScreen> {
                             subtitle: o.paymentMethod,
                             color: Colors.green,
                           ),
+                          if (o.appliedCoupon != null) ...[
+                            const Divider(height: 16),
+                            _buildDetailRow(
+                              icon: Icons.local_offer,
+                              title: 'Coupon Applied',
+                              subtitle: '${o.appliedCoupon} (Saved ₹${o.discountAmount.toStringAsFixed(0)})',
+                              color: Colors.deepOrange,
+                            ),
+                          ],
                           const Divider(height: 16),
                           _buildDetailRow(
                             icon: Icons.currency_rupee,
@@ -410,7 +482,7 @@ class _CartScreenState extends State<CartScreen> {
                         _lastPlacedOrder = null;
                       });
                     },
-                    child: const Text('Back to Home'),
+                    child: const Text('Back to Cart'),
                   ),
                 ],
               ),
@@ -450,7 +522,7 @@ class _CartScreenState extends State<CartScreen> {
       );
     }
 
-    // ── Active Cart View with Address, Pincode & Payment ──
+    // ── Active Cart View with Address, Pincode, Coupons & Payment ──
     return Scaffold(
       appBar: AppBar(
         title: const Text('Your Cart',
@@ -514,6 +586,132 @@ class _CartScreenState extends State<CartScreen> {
                 )),
 
             const SizedBox(height: 14),
+
+            // ── Coupons & Offers Card ──
+            Card(
+              color: theme.colorScheme.surfaceContainerLow,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.local_offer,
+                            color: Colors.orange, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Offers & Coupons',
+                          style: theme.textTheme.titleSmall
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    // If coupon already applied
+                    if (cart.appliedCoupon != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.green.shade50,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.green.shade300),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.check_circle,
+                                color: Colors.green, size: 20),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Coupon ${cart.appliedCoupon} Applied!',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.green.shade900,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  Text(
+                                    'You saved ₹${cart.discountAmount.toStringAsFixed(0)} on this order',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.green.shade800,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: _removeCoupon,
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.red,
+                              ),
+                              child: const Text('REMOVE'),
+                            ),
+                          ],
+                        ),
+                      )
+                    else ...[
+                      // Coupon Input Box
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _couponController,
+                              textCapitalization: TextCapitalization.characters,
+                              decoration: InputDecoration(
+                                hintText: 'Enter code (e.g. FOOD40)',
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 10),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          FilledButton(
+                            onPressed: () {
+                              final c = _couponController.text.trim();
+                              if (c.isNotEmpty) {
+                                _applyCoupon(c);
+                              }
+                            },
+                            child: const Text('APPLY'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      // Quick Tap Coupon Chips
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: _availableCoupons.map((ac) {
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: ActionChip(
+                                avatar: const Icon(Icons.discount_outlined,
+                                    size: 16, color: Colors.orange),
+                                label: Text('${ac['code']} • ${ac['title']}'),
+                                onPressed: () {
+                                  _applyCoupon(ac['code']!);
+                                },
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 12),
 
             // ── Delivery Address & Pincode Card ──
             Card(
@@ -672,6 +870,15 @@ class _CartScreenState extends State<CartScreen> {
                             : '₹${cart.deliveryFee.toStringAsFixed(0)}',
                         valueColor:
                             cart.deliveryFee == 0 ? Colors.green : null),
+                    if (cart.appliedCoupon != null) ...[
+                      const SizedBox(height: 4),
+                      _BillRow(
+                        label: 'Coupon Discount (${cart.appliedCoupon})',
+                        value: '-₹${cart.discountAmount.toStringAsFixed(0)}',
+                        valueColor: Colors.green,
+                        isBold: true,
+                      ),
+                    ],
                     const Divider(height: 20),
                     _BillRow(
                       label: 'To Pay',
