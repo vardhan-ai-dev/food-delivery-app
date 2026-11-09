@@ -132,8 +132,19 @@ class OrdersScreen extends StatelessWidget {
                               padding: const EdgeInsets.only(bottom: 4),
                               child: Row(
                                 children: [
-                                  Text(item.menuItem.emoji,
-                                      style: const TextStyle(fontSize: 18)),
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(6),
+                                    child: SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: Image.network(
+                                        item.menuItem.imageUrl,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) => Text(item.menuItem.emoji,
+                                            style: const TextStyle(fontSize: 18)),
+                                      ),
+                                    ),
+                                  ),
                                   const SizedBox(width: 8),
                                   Expanded(
                                       child: Text(item.menuItem.name,

@@ -35,6 +35,7 @@ class Restaurant {
   final String deliveryTime;
   final double deliveryFee;
   final String imageEmoji;
+  final String imageUrl;
   final Color accentColor;
   final bool isFeatured;
   final List<MenuItem> menu;
@@ -49,6 +50,7 @@ class Restaurant {
     required this.deliveryTime,
     required this.deliveryFee,
     required this.imageEmoji,
+    required this.imageUrl,
     required this.accentColor,
     this.isFeatured = false,
     required this.menu,
@@ -62,6 +64,7 @@ class MenuItem {
   final String description;
   final double price;
   final String emoji;
+  final String imageUrl;
   final bool isVeg;
   final bool isBestseller;
   final String? tag;
@@ -72,6 +75,7 @@ class MenuItem {
     required this.description,
     required this.price,
     required this.emoji,
+    required this.imageUrl,
     this.isVeg = false,
     this.isBestseller = false,
     this.tag,

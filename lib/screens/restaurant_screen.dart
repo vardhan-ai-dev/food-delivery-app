@@ -43,25 +43,41 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          // ── Hero App Bar ──
+          // ── Hero App Bar with Real Cover Photo ──
           SliverAppBar(
-            expandedHeight: 200,
+            expandedHeight: 220,
             pinned: true,
             backgroundColor: r.accentColor,
             foregroundColor: Colors.white,
             flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [r.accentColor, r.accentColor.withOpacity(0.7)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+              background: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.network(
+                    r.imageUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      color: r.accentColor,
+                      child: Center(
+                        child: Text(r.imageEmoji,
+                            style: const TextStyle(fontSize: 80)),
+                      ),
+                    ),
                   ),
-                ),
-                child: Center(
-                  child: Text(r.imageEmoji,
-                      style: const TextStyle(fontSize: 90)),
-                ),
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.black.withOpacity(0.65),
+                          Colors.transparent,
+                          Colors.black.withOpacity(0.7),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             actions: [
@@ -160,7 +176,7 @@ class _RestaurantScreenState extends State<RestaurantScreen> {
             ),
           ),
 
-          // ── Menu Items ──
+          // ── Menu Items with Real Photos ──
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) {
@@ -299,22 +315,39 @@ class _MenuItemCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
       child: Card(
+        clipBehavior: Clip.antiAlias,
         color: theme.colorScheme.surfaceContainerLow,
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Row(
             children: [
-              // Food emoji
-              Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Center(
-                  child: Text(item.emoji,
-                      style: const TextStyle(fontSize: 36)),
+              // Real Food Photo with rounded corners
+              ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: SizedBox(
+                  width: 80,
+                  height: 80,
+                  child: Image.network(
+                    item.imageUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      color: theme.colorScheme.surfaceContainerHighest,
+                      child: Center(
+                        child: Text(item.emoji,
+                            style: const TextStyle(fontSize: 34)),
+                      ),
+                    ),
+                    loadingBuilder: (_, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        color: theme.colorScheme.surfaceContainerHighest,
+                        child: Center(
+                          child: Text(item.emoji,
+                              style: const TextStyle(fontSize: 34)),
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
               const SizedBox(width: 14),

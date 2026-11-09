@@ -18,20 +18,30 @@ class _MainScreenState extends State<MainScreen> {
 
   void _refresh() => setState(() {});
 
+  void _navigateToTab(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final screens = [
       HomeScreen(cartProvider: _cartProvider, onCartChanged: _refresh),
       CartScreen(cartProvider: _cartProvider, onCartChanged: _refresh),
       OrdersScreen(cartProvider: _cartProvider),
-      const ProfileScreen(),
+      ProfileScreen(
+        onNavigateToTab: _navigateToTab,
+        cartProvider: _cartProvider,
+        onCartChanged: _refresh,
+      ),
     ];
 
     return Scaffold(
       body: screens[_currentIndex],
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
-        onDestinationSelected: (i) => setState(() => _currentIndex = i),
+        onDestinationSelected: _navigateToTab,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         destinations: [
           const NavigationDestination(

@@ -54,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return SafeArea(
       child: CustomScrollView(
         slivers: [
-          // ── App Bar ──
+          // ── Header ──
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
@@ -69,7 +69,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: theme.colorScheme.primaryContainer,
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Text('🍽️', style: const TextStyle(fontSize: 20)),
+                        child: const Text('🍽️',
+                            style: TextStyle(fontSize: 20)),
                       ),
                       const SizedBox(width: 12),
                       Column(
@@ -85,7 +86,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           Row(
                             children: [
                               Icon(Icons.location_on,
-                                  size: 14, color: theme.colorScheme.outline),
+                                  size: 14,
+                                  color: theme.colorScheme.outline),
                               const SizedBox(width: 2),
                               Text(
                                 'Delivering to Home',
@@ -105,7 +107,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  // Search bar
                   TextField(
                     controller: _searchController,
                     onChanged: (v) => setState(() => _searchQuery = v),
@@ -128,7 +129,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         borderRadius: BorderRadius.circular(16),
                         borderSide: BorderSide.none,
                       ),
-                      contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                      contentPadding:
+                          const EdgeInsets.symmetric(vertical: 14),
                     ),
                   ),
                 ],
@@ -169,10 +171,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                       color: cat.color.withOpacity(0.3)),
                             ),
                             child: Center(
-                              child: Text(
-                                cat.emoji,
-                                style: const TextStyle(fontSize: 26),
-                              ),
+                              child: Text(cat.emoji,
+                                  style: const TextStyle(fontSize: 26)),
                             ),
                           ),
                           const SizedBox(height: 6),
@@ -197,7 +197,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // ── Featured Banner ──
+          // ── Promo Banner ──
           if (_searchQuery.isEmpty && _selectedCategory == 'All')
             SliverToBoxAdapter(
               child: Padding(
@@ -208,7 +208,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     gradient: LinearGradient(
                       colors: [
                         theme.colorScheme.primary,
-                        theme.colorScheme.primary.withOpacity(0.8),
+                        theme.colorScheme.primary.withOpacity(0.75),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(20),
@@ -218,11 +218,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       Positioned(
                         right: 16,
                         top: 10,
-                        child: Text(
-                          '🍔🍕🍣',
-                          style: TextStyle(
-                              fontSize: 60,
-                              color: Colors.white.withOpacity(0.2)),
+                        child: Opacity(
+                          opacity: 0.15,
+                          child: Text('🍔🍕🍣',
+                              style: const TextStyle(fontSize: 60)),
                         ),
                       ),
                       Padding(
@@ -238,28 +237,19 @@ class _HomeScreenState extends State<HomeScreen> {
                                 color: Colors.white.withOpacity(0.2),
                                 borderRadius: BorderRadius.circular(20),
                               ),
-                              child: const Text(
-                                '🔥 Limited Offer',
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 12),
-                              ),
+                              child: const Text('🔥 Limited Offer',
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 12)),
                             ),
                             const SizedBox(height: 8),
-                            const Text(
-                              'Get 40% OFF',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const Text(
-                              'On your first 3 orders!',
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 14,
-                              ),
-                            ),
+                            const Text('Get 40% OFF',
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold)),
+                            const Text('On your first 3 orders!',
+                                style: TextStyle(
+                                    color: Colors.white70, fontSize: 14)),
                           ],
                         ),
                       ),
@@ -269,38 +259,33 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-          // ── Featured Restaurants ──
+          // ── Featured ──
           if (_searchQuery.isEmpty && _selectedCategory == 'All') ...[
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-                child: Text(
-                  '⭐ Featured Restaurants',
-                  style: theme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.bold),
-                ),
+                child: Text('⭐ Featured Restaurants',
+                    style: theme.textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.bold)),
               ),
             ),
             SliverToBoxAdapter(
               child: SizedBox(
-                height: 200,
+                height: 210,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   itemCount: _featuredRestaurants.length,
-                  itemBuilder: (context, index) {
-                    final r = _featuredRestaurants[index];
-                    return _FeaturedCard(
-                      restaurant: r,
-                      onTap: () => _openRestaurant(r),
-                    );
-                  },
+                  itemBuilder: (context, index) => _FeaturedCard(
+                    restaurant: _featuredRestaurants[index],
+                    onTap: () => _openRestaurant(_featuredRestaurants[index]),
+                  ),
                 ),
               ),
             ),
           ],
 
-          // ── All Restaurants Header ──
+          // ── All Restaurants header ──
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
@@ -314,12 +299,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         ?.copyWith(fontWeight: FontWeight.bold),
                   ),
                   const Spacer(),
-                  Text(
-                    '${_filteredRestaurants.length} places',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.outline,
-                    ),
-                  ),
+                  Text('${_filteredRestaurants.length} places',
+                      style: theme.textTheme.bodySmall
+                          ?.copyWith(color: theme.colorScheme.outline)),
                 ],
               ),
             ),
@@ -332,14 +314,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.all(40),
                     child: Column(
                       children: [
-                        const Text('😕', style: TextStyle(fontSize: 48)),
+                        const Text('😕',
+                            style: TextStyle(fontSize: 48)),
                         const SizedBox(height: 12),
-                        Text(
-                          'No restaurants found',
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: theme.colorScheme.outline,
-                          ),
-                        ),
+                        Text('No restaurants found',
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                                color: theme.colorScheme.outline)),
                       ],
                     ),
                   ),
@@ -347,9 +327,7 @@ class _HomeScreenState extends State<HomeScreen> {
               : SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
-                      if (index >= _filteredRestaurants.length) {
-                        return null;
-                      }
+                      if (index >= _filteredRestaurants.length) return null;
                       final r = _filteredRestaurants[index];
                       return _RestaurantCard(
                         restaurant: r,
@@ -360,7 +338,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
 
-          // Bottom padding
           const SliverToBoxAdapter(child: SizedBox(height: 20)),
         ],
       ),
@@ -394,102 +371,93 @@ class _FeaturedCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 220,
+        width: 200,
         margin: const EdgeInsets.only(right: 14),
         decoration: BoxDecoration(
-          color: restaurant.accentColor.withOpacity(0.08),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: restaurant.accentColor.withOpacity(0.15)),
+          border:
+              Border.all(color: restaurant.accentColor.withOpacity(0.2)),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: restaurant.accentColor.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Text(restaurant.imageEmoji,
-                        style: const TextStyle(fontSize: 30)),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image
+            SizedBox(
+              height: 120,
+              width: double.infinity,
+              child: Image.network(
+                restaurant.imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  color: restaurant.accentColor.withOpacity(0.1),
+                  child: Center(
+                      child: Text(restaurant.imageEmoji,
+                          style: const TextStyle(fontSize: 48))),
+                ),
+                loadingBuilder: (_, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Container(
+                    color: restaurant.accentColor.withOpacity(0.1),
+                    child: Center(
+                        child: Text(restaurant.imageEmoji,
+                            style: const TextStyle(fontSize: 48))),
+                  );
+                },
+              ),
+            ),
+            // Info
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(restaurant.name,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 13),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
+                    const SizedBox(height: 2),
+                    Text(restaurant.cuisine,
+                        style: TextStyle(
+                            fontSize: 10,
+                            color: theme.colorScheme.outline),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
+                    const SizedBox(height: 4),
+                    Row(
                       children: [
-                        Row(
-                          children: [
-                            Icon(Icons.star,
-                                size: 16, color: Colors.amber.shade700),
-                            const SizedBox(width: 3),
-                            Text(
-                              '${restaurant.rating}',
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 13),
-                            ),
-                          ],
-                        ),
-                        Text(
-                          restaurant.deliveryTime,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: theme.colorScheme.outline,
-                          ),
-                        ),
+                        Icon(Icons.star,
+                            size: 13, color: Colors.amber.shade700),
+                        const SizedBox(width: 3),
+                        Text('${restaurant.rating}',
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12)),
+                        const SizedBox(width: 8),
+                        Icon(Icons.access_time,
+                            size: 12, color: theme.colorScheme.outline),
+                        const SizedBox(width: 3),
+                        Text(restaurant.deliveryTime,
+                            style: TextStyle(
+                                fontSize: 11,
+                                color: theme.colorScheme.outline)),
                       ],
                     ),
-                  ),
-                ],
-              ),
-              const Spacer(),
-              Text(
-                restaurant.name,
-                style: const TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 15),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 2),
-              Text(
-                restaurant.cuisine,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: theme.colorScheme.outline,
+                  ],
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 6),
-              Row(
-                children: [
-                  Icon(Icons.delivery_dining,
-                      size: 14, color: theme.colorScheme.outline),
-                  const SizedBox(width: 4),
-                  Text(
-                    restaurant.deliveryFee == 0
-                        ? 'Free delivery'
-                        : '₹${restaurant.deliveryFee.toInt()} delivery',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: theme.colorScheme.outline,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-// ───────── Restaurant Card ─────────
+// ───────── Restaurant List Card ─────────
 class _RestaurantCard extends StatelessWidget {
   final Restaurant restaurant;
   final VoidCallback onTap;
@@ -506,40 +474,47 @@ class _RestaurantCard extends StatelessWidget {
         color: theme.colorScheme.surfaceContainerLow,
         child: InkWell(
           onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Container(
-                  width: 70,
-                  height: 70,
-                  decoration: BoxDecoration(
+          child: Row(
+            children: [
+              // Restaurant image
+              SizedBox(
+                width: 90,
+                height: 90,
+                child: Image.network(
+                  restaurant.imageUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
                     color: restaurant.accentColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(16),
+                    child: Center(
+                        child: Text(restaurant.imageEmoji,
+                            style: const TextStyle(fontSize: 36))),
                   ),
-                  child: Center(
-                    child: Text(restaurant.imageEmoji,
-                        style: const TextStyle(fontSize: 36)),
-                  ),
+                  loadingBuilder: (_, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Container(
+                      color: restaurant.accentColor.withOpacity(0.1),
+                      child: Center(
+                          child: Text(restaurant.imageEmoji,
+                              style: const TextStyle(fontSize: 36))),
+                    );
+                  },
                 ),
-                const SizedBox(width: 14),
-                Expanded(
+              ),
+              // Info
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        restaurant.name,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 16),
-                      ),
+                      Text(restaurant.name,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 15)),
                       const SizedBox(height: 2),
-                      Text(
-                        restaurant.cuisine,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: theme.colorScheme.outline,
-                        ),
-                      ),
+                      Text(restaurant.cuisine,
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: theme.colorScheme.outline)),
                       const SizedBox(height: 6),
                       Row(
                         children: [
@@ -547,28 +522,29 @@ class _RestaurantCard extends StatelessWidget {
                               size: 15, color: Colors.amber.shade700),
                           const SizedBox(width: 3),
                           Text(
-                            '${restaurant.rating} (${restaurant.reviewCount})',
-                            style: const TextStyle(
-                                fontSize: 12, fontWeight: FontWeight.w500),
-                          ),
-                          const SizedBox(width: 12),
+                              '${restaurant.rating} (${restaurant.reviewCount})',
+                              style: const TextStyle(
+                                  fontSize: 12, fontWeight: FontWeight.w500)),
+                          const SizedBox(width: 10),
                           Icon(Icons.access_time,
-                              size: 14, color: theme.colorScheme.outline),
+                              size: 13, color: theme.colorScheme.outline),
                           const SizedBox(width: 3),
-                          Text(
-                            restaurant.deliveryTime,
-                            style: TextStyle(
-                                fontSize: 12,
-                                color: theme.colorScheme.outline),
-                          ),
+                          Text(restaurant.deliveryTime,
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: theme.colorScheme.outline)),
                         ],
                       ),
                     ],
                   ),
                 ),
-                Icon(Icons.chevron_right, color: theme.colorScheme.outline),
-              ],
-            ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: Icon(Icons.chevron_right,
+                    color: theme.colorScheme.outline),
+              ),
+            ],
           ),
         ),
       ),

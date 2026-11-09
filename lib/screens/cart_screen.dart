@@ -231,7 +231,23 @@ class _CartItemTile extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         child: Row(
           children: [
-            Text(item.emoji, style: const TextStyle(fontSize: 32)),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: SizedBox(
+                width: 48,
+                height: 48,
+                child: Image.network(
+                  item.imageUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    color: theme.colorScheme.surfaceContainerHighest,
+                    child: Center(
+                      child: Text(item.emoji, style: const TextStyle(fontSize: 24)),
+                    ),
+                  ),
+                ),
+              ),
+            ),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
